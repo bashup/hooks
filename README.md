@@ -1,14 +1,18 @@
 # Hooks, event listeners, and AOP for bash
 
-This small (~30 line, <1K)  bash module provides tools for modifying bash functions in such a way as to allow using them as hooks, events, or AOP-style "advice".  It is written using only bash builtins, and so has no dependencies..
+This small (~1K, ~30 line) bash module provides tools for modifying bash functions in such a way as to allow using them as hooks, events, or AOP-style "advice".  It is written using only bash builtins, and so has no dependencies.
 
 ### Installation, Requirements And Use
 
 Copy and paste the [code](bashup.hooks) into your script, or place it on `PATH` and `source bashup.hooks`.  (If you have [basher](https://github.com/basherpm/basher), you can `basher install bashup/hooks` to get it installed on your `PATH`.)  The code is licensed [CC0](http://creativecommons.org/publicdomain/zero/1.0/), so you are not required to add any attribution or copyright notices to your project.
 
+```shell
+    $ source bashup.hooks
+```
+
 ### Events and Hooks
 
-The main API functions are `hook.before`, `hook.after`, and `hook.without`.  Each takes a function name, followed by a command or function name and optional arguments.  The function named by `$1` is then modified accordingly.
+The main API functions are `hook.before`, `hook.after`, and `hook.without`.  Each takes a function name, followed by a command or function name and optional arguments.  The function named by `$1` is then modified accordingly (or created, if it doesn't exist):
 
 * `hook.before` *func cmd...* modifies *func* to run *cmd...* **before** its existing code
 * `hook.after` *func cmd...* modifies *func* to run *cmd...* **after** its existing code
@@ -17,21 +21,34 @@ The main API functions are `hook.before`, `hook.after`, and `hook.without`.  Eac
 Using these functions, you can then implement an event-listener or hook pattern like this:
 
 ```shell
-# Define events or hooks as empty functions
-event1() { :; }
+# Check for function existence with hook.exists:
+    $ if ! hook.exists event1; then echo "not yet"; fi
+    not yet
 
-# Subscribe to events using hook.after
-hook.after event1 echo "got event1"
-hook.after event1 echo "isn't this cool?"
+# Subscribe to events using hook.after (which auto-creates the function)
+    $ hook.after event1 echo "got event1"
+    $ hook.after event1 echo "isn't this cool?"
+
+    $ if hook.exists event1; then echo "event1 exists!"; fi
+    event1 exists!
 
 # Fire events by calling the function:
-event1   # outputs "got event1" and "isn't this cool?"
+    $ event1
+    got event1
+    isn't this cool?
 
-# Unsubscribe using hook.without
-hook.without event1 echo "got event1"
+# Unsubscribe using hook.without:
+    $ hook.without event1 echo "got event1"
+    $ event1
+    isn't this cool?
 
-event1   # outputs "isn't this cool?"
-
+# Removing everything from a function leaves a no-op (:)
+    $ hook.without event1 echo "isn't this cool?"
+    $ declare -f event1 | sed 's/ $//'
+    event1 ()
+    {
+        :
+    }
 ```
 
 #### Passing Arguments
@@ -39,19 +56,24 @@ event1   # outputs "isn't this cool?"
 Note that the *cmd...* passed to these functions does not have access to any arguments passed to the altered function.  You can work around this by setting variables inside the hook/event function, which are then accessible from any listener functions:
 
 ```shell
-my-hook() { local SOME_ARG=$1 OTHER_ARG=$2; }
+# Expose arguments as variables:
+    $ my-hook() { local SOME_ARG=$1 OTHER_ARG=$2; }
 
-listener1() { echo "listener1: '$SOME_ARG'"; }     # use a function to access call-time values
-hook.after my-hook listener1
-my-hook foo bar    # outputs "listener1: 'foo'"
+# Use a function to access call-time values:
+    $ listener1() { echo "listener1: '$SOME_ARG'"; }
+    $ hook.after my-hook listener1
+    $ my-hook foo bar
+    listener1: 'foo'
 ```
 
-Note that it does *not* work to reference these variables when *registering* the funtion, e.g.
+Note that it does *not* work to reference these variables when *registering* the funtion, e.g.:
 
 ```shell
-hook.after my-hook echo "listener2: '$SOME_ARG'"   # <-- WRONG; this echos the listen-time value!
-
-my-hook baz   # outputs "listener1: 'baz'" and "listener2: ''"
+# WRONG; echos the listen-time value!
+    $ hook.after my-hook echo "listener2: '$SOME_ARG'"
+    $ my-hook baz
+    listener1: 'baz'
+    listener2: ''
 ```
 
 This is because bash will interpolate the value of `$SOME_ARG` that exists at the time of registration, rather than at the time of invocation.
@@ -69,15 +91,21 @@ For these scenarios, you can use `hook.eval-before`, `hook.eval-after`, and `hoo
 As an example, we can use `hook.eval-after` to make a listener that reads its arguments directly:
 
 ```shell
-hook.without my-hook echo "listener2: ''"   # remove the broken hook from the previous example
-hook.eval-after my-hook $'echo "listener2: \'$1\'"'
-my-hook spam    # outputs "listener1: 'spam'" and "listener2: 'spam'"
+# remove the broken hook from the previous example
+    $ hook.without my-hook echo "listener2: ''"
+
+# replace it with one that works
+    $ hook.eval-after my-hook $'echo "listener2: \'$1\'"'
+    $ my-hook spam
+    listener1: 'spam'
+    listener2: 'spam'
 ```
 Of course, this requires you to quote and escape the code correctly, and to remove a listener you have to carefullly match the original string:
 
 ```shell
-hook.eval-without my-hook $'echo "listener2: \'$1\'"'
-my-hook again    # outputs "listener1: 'again'"
+    $ hook.eval-without my-hook $'echo "listener2: \'$1\'"'
+    $ my-hook again
+    listener1: 'again'
 ```
 
 So be sure to carefully test any code that directly uses the `hook.eval-` variants.
@@ -87,50 +115,57 @@ So be sure to carefully test any code that directly uses the `hook.eval-` varian
 Sometimes, what you really want is to wrap a function with some logic, like a condition or loop.  Or perhaps post-process its results, or change its arguments. The  `hook.around` function lets you do this, by defining a second function as a *template* for how the first function will be modified.  For example, suppose we are using this function:
 
 ```shell
-hello() {
-    echo "hello $1!"
-}   
+    $ hello() { echo "hello $1!"; }
 ```
 
 And we would like it to default to `world` as its first argument, if no arguments are given.  We can do that like so:
 
 ```shell
-default-hello-arg() {
-    if (($#)); then
-        defaulted-hello "$@"
-    else
-        defaulted-hello "world"
-    fi
-}
-hook.around hello default-hello-arg defaulted-hello
+    $ hello-with-default() {
+    >     if (($#)); then
+    >         hello-without-default "$@"
+    >     else
+    >         hello-without-default "world"
+    >     fi
+    > }
+
+# Wrap hello's old definition as 'hello-without-default` inside a copy of 'hello-with-default':
+    $ hook.around hello hello-with-default hello-without-default
 ```
 
 `hook.around` will then rewrite the body of the `hello` function so it looks like this:
 
 ```bash
-hello() {
-    defaulted-hello() {
-        echo "hello $1!"
+    $ declare -f hello | sed 's/ $//'
+    hello ()
+    {
+        function hello-without-default ()
+        {
+            echo "hello $1!"
+        };
+        if (($#)); then
+            hello-without-default "$@";
+        else
+            hello-without-default "world";
+        fi
     }
-    if (($#)); then
-        defaulted-hello "$@";
-    else
-        defaulted-hello "world";
-    fi
-}
 ```
 
 It's a good idea to name the wrapped function something that reflects the intent of your wrapper, so as to avoid collisions with other function names.  It's a bad idea to use generic names like `original-foo` or `wrapped-foo`, because more than one piece of advice might be named the same way, resulting in one overwriting the other.
 
 ### Utilities
 
+#### hook.exists
+
+`hook.exists` *function* returns truth if a function named *function* exists, and false otherwise.
+
 #### hook.quote-args
 
-`hook.quote-args` *args...* sets `REPLY` to the a space-separated list of the given arguments in shell-quoted form (using `printf %q`.  The resulting string is safe to `eval`, in the sense that the arguments are guaranteed to expand to the same values (and number of valus) as were originally given.
+`hook.quote-args` *variable args...* sets *variable* to a space-separated list of the given arguments in shell-quoted form (using `printf %q`.  The resulting string is safe to `eval`, in the sense that the arguments are guaranteed to expand to the same values (and number of valus) as were originally given.  (The resulting string also begins with a space, so if you're using it for something other than `eval` you may need to remove it.)
 
 #### hook.body
 
-`hook.body` *function [before [after]]* sets `REPLY` to the body of *function*'s source code, optionally replacing the opening brace with *before* and the closing brace with *after*.  If *before* is not supplied, it defaults to `{`; if *after* is not supplied, it defaults to `}`.
+`hook.body` *function defaultbody [before [after]]* sets `REPLY` to the body of *function*'s source code, optionally replacing the opening brace with *before* and the closing brace with *after*.  If *before* is not supplied, it defaults to `{`; if *after* is not supplied, it defaults to `}`.  If *function* doesn't exist, it's treated as if it did exist, and had *defaultbody* inside the braces.
 
 ## License
 
