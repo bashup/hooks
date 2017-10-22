@@ -2,6 +2,22 @@
 
 This small (~1K, ~30 line) bash module provides tools for modifying bash functions in such a way as to allow using them as hooks, events, or AOP-style "advice".  It is written using only bash builtins, and so has no dependencies.
 
+**Contents**
+<!-- toc -->
+
+- [Installation, Requirements And Use](#installation-requirements-and-use)
+- [Events and Hooks](#events-and-hooks)
+  * [Passing Arguments](#passing-arguments)
+- [AOP and Monkeypatching](#aop-and-monkeypatching)
+- ["Around" Advice](#around-advice)
+- [Utilities](#utilities)
+  * [hook.exists](#hookexists)
+  * [hook.quote-args](#hookquote-args)
+  * [hook.body](#hookbody)
+- [License](#license)
+
+<!-- tocstop -->
+
 ### Installation, Requirements And Use
 
 Copy and paste the [code](bashup.hooks) into your script, or place it on `PATH` and `source bashup.hooks`.  (If you have [basher](https://github.com/basherpm/basher), you can `basher install bashup/hooks` to get it installed on your `PATH`.)  The code is licensed [CC0](http://creativecommons.org/publicdomain/zero/1.0/), so you are not required to add any attribution or copyright notices to your project.
@@ -178,7 +194,7 @@ It's a good idea to name the wrapped function something that reflects the intent
 
 `hook.body` *function defaultbody [before [after]]* sets `REPLY` to the body of *function*'s source code, optionally replacing the opening brace with *before* and the closing brace with *after*.  If *before* is not supplied, it defaults to `{`; if *after* is not supplied, it defaults to `}`.  If *function* doesn't exist, it's treated as if it did exist, and had *defaultbody* inside the braces.
 
-## License
+### License
 
 <p xmlns:dct="http://purl.org/dc/terms/" xmlns:vcard="http://www.w3.org/2001/vcard-rdf/3.0#">
   <a rel="license" href="http://creativecommons.org/publicdomain/zero/1.0/"><img src="https://licensebuttons.net/p/zero/1.0/80x15.png" style="border-style: none;" alt="CC0" /></a><br />
