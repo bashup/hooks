@@ -29,7 +29,7 @@ Using these functions, you can then implement an event-listener or hook pattern 
 # Subscribe to events using hook.after (which auto-creates the function)
 
     $ hook.after event1 echo "got event1"
-    $ hook.after event1 echo "isn't this cool?"
+    $ hook.after event1 echo "is this cool or what?"
 
     $ if hook.exists event1; then echo "event1 exists!"; fi
     event1 exists!
@@ -38,17 +38,17 @@ Using these functions, you can then implement an event-listener or hook pattern 
 
     $ event1
     got event1
-    isn't this cool?
+    is this cool or what?
 
 # Unsubscribe using hook.without:
 
     $ hook.without event1 echo "got event1"
     $ event1
-    isn't this cool?
+    is this cool or what?
 
 # Removing everything from a function leaves a no-op (:)
 
-    $ hook.without event1 echo "isn't this cool?"
+    $ hook.without event1 echo "is this cool or what?"
     $ declare -f event1 | sed 's/ $//'
     event1 ()
     {
