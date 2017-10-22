@@ -4,7 +4,7 @@ This small (~30 line, <1K)  bash module provides tools for modifying bash functi
 
 ### Installation, Requirements And Use
 
-Copy and paste the [code](bashup.hooks) into your script, or place it on `PATH` and `source bashup.hooks`.  (if you have [basher](https://github.com/basherpm/basher), you can `basher install bashup/hooks` to get it installed on your `PATH`.)  The code is licensed CC0, so you are not required to add any attribution or copyright notices to your project.
+Copy and paste the [code](bashup.hooks) into your script, or place it on `PATH` and `source bashup.hooks`.  (If you have [basher](https://github.com/basherpm/basher), you can `basher install bashup/hooks` to get it installed on your `PATH`.)  The code is licensed [CC0](http://creativecommons.org/publicdomain/zero/1.0/), so you are not required to add any attribution or copyright notices to your project.
 
 ### Events and Hooks
 
