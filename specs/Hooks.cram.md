@@ -13,6 +13,9 @@ First, We run the docs with mdsh, and the results should be as described:
     listener1: 'foo'
     listener1: 'baz'
     listener2: ''
+    listener1: 'spam'
+    listener2: 'spam'
+    listener1: 'again'
 
 In adddition, the `hello` function should look like that example's output:
 
@@ -32,20 +35,13 @@ In adddition, the `hello` function should look like that example's output:
 
 ## 'before' hooks
 
-Next, because the docs don't really test "before" functions, let's do some now:
+Next, because the docs don't really test "before" functions, let's do one now:
 
     $ listener3() { echo "listener3: '$SOME_ARG'"; }
     $ hook.before listener1 listener3
     $ my-hook bar
     listener3: 'bar'
     listener1: 'bar'
-    listener2: ''
-
-    $ hook.without my-hook echo "listener2: ''"
-    $ my-hook test
-    listener3: 'test'
-    listener1: 'test'
-
 
 ## 'eval' Variants and 'without' Syntax
 

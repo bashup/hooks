@@ -56,6 +56,8 @@ my-hook baz   # outputs "listener1: 'baz'" and "listener2: ''"
 
 This is because bash will interpolate the value of `$SOME_ARG` that exists at the time of registration, rather than at the time of invocation.
 
+(If you want to have listeners be able to receive arguments directly, you may want to use `hook.eval-after` instead, as described in the next section.)
+
 ### AOP and Monkeypatching
 
 Sometimes, the function you need to modify is not one whose source you control, so you can't rely on it supplying its arguments in a particular form, or you need to inject code that's not a function call, etc.
@@ -63,6 +65,22 @@ Sometimes, the function you need to modify is not one whose source you control, 
 For these scenarios, you can use `hook.eval-before`, `hook.eval-after`, and `hook.eval-without`.  These functions take a function name and a string; the string is then injected (or removed) from the function source as-is.  (The non-`eval` variants of these functions actually work by invoking the `eval` variants with their arguments combined into a properly-escaped string using `hook.quote-args`.)
 
 (Note: all of these functions require their string argument to be syntactically valid as one or more *complete* bash statements, or a syntax error will be the result.)
+
+As an example, we can use `hook.eval-after` to make a listener that reads its arguments directly:
+
+```shell
+hook.without my-hook echo "listener2: ''"   # remove the broken hook from the previous example
+hook.eval-after my-hook $'echo "listener2: \'$1\'"'
+my-hook spam    # outputs "listener1: 'spam'" and "listener2: 'spam'"
+```
+Of course, this requires you to quote and escape the code correctly, and to remove a listener you have to carefullly match the original string:
+
+```shell
+hook.eval-without my-hook $'echo "listener2: \'$1\'"'
+my-hook again    # outputs "listener1: 'again'"
+```
+
+So be sure to carefully test any code that directly uses the `hook.eval-` variants.
 
 ### "Around" Advice
 
