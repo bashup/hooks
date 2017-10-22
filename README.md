@@ -22,10 +22,12 @@ Using these functions, you can then implement an event-listener or hook pattern 
 
 ```shell
 # Check for function existence with hook.exists:
+
     $ if ! hook.exists event1; then echo "not yet"; fi
     not yet
 
 # Subscribe to events using hook.after (which auto-creates the function)
+
     $ hook.after event1 echo "got event1"
     $ hook.after event1 echo "isn't this cool?"
 
@@ -33,16 +35,19 @@ Using these functions, you can then implement an event-listener or hook pattern 
     event1 exists!
 
 # Fire events by calling the function:
+
     $ event1
     got event1
     isn't this cool?
 
 # Unsubscribe using hook.without:
+
     $ hook.without event1 echo "got event1"
     $ event1
     isn't this cool?
 
 # Removing everything from a function leaves a no-op (:)
+
     $ hook.without event1 echo "isn't this cool?"
     $ declare -f event1 | sed 's/ $//'
     event1 ()
@@ -57,9 +62,11 @@ Note that the *cmd...* passed to these functions does not have access to any arg
 
 ```shell
 # Expose arguments as variables:
+
     $ my-hook() { local SOME_ARG=$1 OTHER_ARG=$2; }
 
 # Use a function to access call-time values:
+
     $ listener1() { echo "listener1: '$SOME_ARG'"; }
     $ hook.after my-hook listener1
     $ my-hook foo bar
@@ -70,6 +77,7 @@ Note that it does *not* work to reference these variables when *registering* the
 
 ```shell
 # WRONG; echos the listen-time value!
+
     $ hook.after my-hook echo "listener2: '$SOME_ARG'"
     $ my-hook baz
     listener1: 'baz'
@@ -92,9 +100,11 @@ As an example, we can use `hook.eval-after` to make a listener that reads its ar
 
 ```shell
 # remove the broken hook from the previous example
+
     $ hook.without my-hook echo "listener2: ''"
 
 # replace it with one that works
+
     $ hook.eval-after my-hook $'echo "listener2: \'$1\'"'
     $ my-hook spam
     listener1: 'spam'
@@ -130,6 +140,7 @@ And we would like it to default to `world` as its first argument, if no argument
     > }
 
 # Wrap hello's old definition as 'hello-without-default` inside a copy of 'hello-with-default':
+
     $ hook.around hello hello-with-default hello-without-default
 ```
 
