@@ -16,14 +16,14 @@ hook.eval-before(){ hook.body "$1" "" "{ $2" "}";  eval "$1() $REPLY"; }
 hook.eval-after() { hook.body "$1" "" "{" "$2 ;}"; eval "$1() $REPLY"; }
 
 hook.eval-without() {
-    local r='^~hooktmp~^'; eval $r$'() {\n'"$2"$'\n}'; hook.body $r "" "" ""
+    local l=$'\n}' r='^~hooktmp~^'; eval $r$'() {\n'"$2"$'\n}'; hook.body $r "" "" ""
     unset -f $r; r=${REPLY%$'\n'}; hook.body "$1"
     while [[ $REPLY =~ "$r"\;?' '*$'\n' ]]; do REPLY=${REPLY//"$BASH_REMATCH"/$'\n'}; done
-    eval "$1() ${REPLY/#$'{\n}'/$'{ :; }'}"
+    eval "$1() ${REPLY/#{$l/{ :$l}";
 }
 
 hook.body() {
-    local lf=$'\n' r;
+    local lf=$'\n' b="}" r
     r="$(declare -f -- "$1")" && { r=${r#*{ }; r=${r%\}*}; } || r=$lf$2$lf
-    REPLY="${3-{}$r${4-\}}"
+    REPLY="${3-{}$r${4-$b}"
 }

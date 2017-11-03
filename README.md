@@ -1,6 +1,6 @@
 # Hooks, event listeners, and AOP for bash
 
-This small (~1K, ~30 line) bash module provides tools for modifying bash functions in such a way as to allow using them as hooks, events, or AOP-style "advice".  It is written using only bash builtins, and so has no dependencies.
+This small (~1K, ~30 line) bash module provides tools for modifying bash functions in such a way as to allow using them as hooks, events, or AOP-style "advice".  It is written using only bash builtins, and so has no dependencies.  (It even works with bash 3.2!)
 
 **Contents**
 <!-- toc -->
