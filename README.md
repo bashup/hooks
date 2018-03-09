@@ -28,11 +28,12 @@ Copy and paste the [code](bashup.hooks) into your script, or place it on `PATH` 
 
 ### Events and Hooks
 
-The main API functions are `hook.before`, `hook.after`, and `hook.without`.  Each takes a function name, followed by a command or function name and optional arguments.  The function named by `$1` is then modified accordingly (or created, if it doesn't exist):
+The main API functions are `hook.on`, `hook.before`, `hook.after`, and `hook.without`.  Each takes a function name, followed by a command or function name and optional arguments.  The function named by `$1` is then modified accordingly (or created, if it doesn't exist):
 
 * `hook.before` *func cmd...* modifies *func* to run *cmd...* **before** its existing code
 * `hook.after` *func cmd...* modifies *func* to run *cmd...* **after** its existing code
 * `hook.without` *func cmd...* modifies *func* to **remove** *cmd...* from its existing code
+* `hook.on` is an alias for `hook.after`
 
 Using these functions, you can then implement an event-listener or hook pattern like this:
 
@@ -42,10 +43,10 @@ Using these functions, you can then implement an event-listener or hook pattern 
     $ if ! hook.exists event1; then echo "not yet"; fi
     not yet
 
-# Subscribe to events using hook.after (which auto-creates the function)
+# Subscribe to events using hook.on, hook.before, or hook.after (auto-creating the function)
 
-    $ hook.after event1 echo "got event1"
-    $ hook.after event1 echo "is this cool or what?"
+    $ hook.on event1 echo "got event1"
+    $ hook.on event1 echo "is this cool or what?"
 
     $ if hook.exists event1; then echo "event1 exists!"; fi
     event1 exists!

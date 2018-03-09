@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 
-hook.exists()  { declare -F -- "$1";} >/dev/null
-hook.before()  { hook.quote-args REPLY "${@:2}"; hook.eval-before  "$1" "$REPLY"; }
-hook.after()   { hook.quote-args REPLY "${@:2}"; hook.eval-after   "$1" "$REPLY"; }
-hook.without() { hook.quote-args REPLY "${@:2}"; hook.eval-without "$1" "$REPLY"; }
+hook.exists() { declare -F -- "$1";} >/dev/null
+hook.before() { hook.quote-args REPLY "${@:2}"; hook.eval-before  "$1" "$REPLY";}
+hook.after()  { hook.quote-args REPLY "${@:2}"; hook.eval-after   "$1" "$REPLY";}
+hook.without(){ hook.quote-args REPLY "${@:2}"; hook.eval-without "$1" "$REPLY";}
+hook.on() { hook.after "$@";}
 
-hook.around()  {
+hook.around(){
     hook.body "$1" ":;"; local old=$REPLY
     hook.body "$2" "$3;"; local wrap=$REPLY
     eval "$1() ${wrap/#{/{ $3() $old}"
 }
 
-hook.quote-args() { printf -v "$1" ' %q' "${@:2}"; }
-hook.eval-before(){ hook.body "$1" "" "{ $2" "}";  eval "$1() $REPLY"; }
-hook.eval-after() { hook.body "$1" "" "{" "$2 ;}"; eval "$1() $REPLY"; }
+hook.quote-args() { printf -v "$1" ' %q' "${@:2}";}
+hook.eval-before(){ hook.body "$1" "" "{ $2" "}";  eval "$1() $REPLY";}
+hook.eval-after() { hook.body "$1" "" "{" "$2 ;}"; eval "$1() $REPLY";}
 
 hook.eval-without() {
     local l=$'\n}' r='^~hooktmp~^'; eval $r$'() {\n'"$2"$'\n}'; hook.body $r "" "" ""
