@@ -19,7 +19,7 @@ hook.eval-after() { hook.body "$1" "" "{" "$2 ;}"; eval "$1() $REPLY";}
 hook.eval-without() {
     local l=$'\n}' r='^~hooktmp~^'; eval $r$'() {\n'"$2"$'\n}'; hook.body $r "" "" ""
     unset -f $r; r=${REPLY%$'\n'}; hook.body "$1"
-    while [[ $REPLY =~ "$r"\;?' '*$'\n' ]]; do REPLY=${REPLY//"$BASH_REMATCH"/$'\n'}; done
+    while [[ $REPLY =~ "$r"\;?' '*$'\n' ]]; do REPLY=${REPLY//"${BASH_REMATCH[0]}"/$'\n'}; done
     eval "$1() ${REPLY/#{$l/{ :$l}";
 }
 

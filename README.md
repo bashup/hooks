@@ -1,6 +1,8 @@
-# Hooks, event listeners, and AOP for bash
+# AOP and Monkeypatching for bash
 
-This small (~1K, ~30 line) bash module provides tools for modifying bash functions in such a way as to allow using them as hooks, events, or AOP-style "advice".  It is written using only bash builtins, and so has no dependencies.  (It even works with bash 3.2!)
+This small (~1K, ~30 line) bash module provides tools for dynamically modifying bash functions at runtime for AOP-style "advice" and monkeypatching.  It is written using only bash builtins, and so has no external dependencies.  (It even works with bash 3.2!)
+
+> Note: since the development of the [bashup/events](https://github.com/bashup/events/) module, this project is no longer the best choice for event-driven programming in bash.  Manipulating function bodies is slower, more error prone, and far less flexible than the variable-driven approach used by bashup/events.  So this module is now mainly useful for dynamically patching code you didn't write, rather than for adding hooks to your own code.
 
 **Contents**
 <!-- toc -->
